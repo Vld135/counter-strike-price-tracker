@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "js-sha1": "^0.7.0",
+    "steam-totp": "^2.1.2",
+    "steamcommunity": "^3.48.2"
+  }
+}

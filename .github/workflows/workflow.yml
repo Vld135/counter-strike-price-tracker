@@ -8,9 +8,7 @@ on:
 
 jobs:
     download:
-        runs-on: self-hosted
-        labels:
-            - local
+        runs-on: [self-hosted, local]
 
         permissions:
             contents: write

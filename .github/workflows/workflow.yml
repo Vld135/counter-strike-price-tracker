@@ -16,6 +16,8 @@ jobs:
         steps:
             - uses: actions/checkout@master
             - uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
             - name: Update prices
               run: npm install && node index.js '${{ secrets.USERNAME }}' '${{ secrets.PASSWORD }}' '${{ secrets.SHARED_SECRET }}'
             - name: Get current date and time

@@ -19,7 +19,7 @@ const MAX_DURATION = 3600 * 1000 * 5.5;
 
 let errorFound = false;
 
-if (process.argv.length != 5) {
+if (process.argv.length != 6) {
   console.error(
     `Missing input arguments, expected 5 got ${process.argv.length}`
   );

@@ -19,7 +19,7 @@ jobs:
               with:
                   node-version: '18'
             - name: Update prices
-              run: npm install && node index.js '${{ secrets.USERNAME }}' '${{ secrets.PASSWORD }}' '${{ secrets.SHARED_SECRET }}'
+              run: npm install && node index.js '${{ secrets.USERNAME }}' '${{ secrets.PASSWORD }}' '${{ secrets.SHARED_SECRET }}' '${{ secrets.PROXY_URL }}'
             - name: Get current date and time
               id: current_datetime
               run: echo "CURRENT_DATETIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV

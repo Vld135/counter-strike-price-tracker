@@ -21,7 +21,7 @@ let errorFound = false;
 
 if (process.argv.length != 6) {
   console.error(
-    `Missing input arguments, expected 5 got ${process.argv.length}`
+    `Missing input arguments, expected 6 got ${process.argv.length}`
   );
   process.exit(1);
 }
@@ -230,7 +230,7 @@ async function processBatch(batch) {
 
 async function processItems(items, startIndex, batchSize = 1) {
   // Calculate delay based on rate limit
-  const requestsPerMinute = 120;
+  const requestsPerMinute = 150;
   // Calculate delay needed after each batch to adhere to the rate limit
   // Note: If batchSize is larger than the rate limit, this will result in a negative delay,
   // which should be handled as well (e.g., by setting a minimum batchSize or adjusting the logic accordingly).

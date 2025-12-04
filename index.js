@@ -214,13 +214,12 @@ async function processBatch(batch) {
           const hashedName = sha1(name);
           // TODO: Try to save all data prices.
           // For testing purposes just add the last 500 prices.
-          const filteredPrices = prices.splice(-500);
-          // return fs.writeFile(
-          //     `${dir}/pricehistory/${hashedName}.json`,
-          //     JSON.stringify(filteredPrices),
-          //     (err) => err && console.error(err)
-          // );
-          return true;
+          // const filteredPrices = prices.splice(-500);
+          return fs.writeFile(
+              `${dir}/pricehistory/${hashedName}.json`,
+              JSON.stringify(prices),
+              (err) => err && console.error(err)
+          );
         }
       })
       .catch((error) => console.log(`Error processing ${name}:`, error))

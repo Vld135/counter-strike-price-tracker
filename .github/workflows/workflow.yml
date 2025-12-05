@@ -3,7 +3,6 @@ name: Update CS Prices
 on:
     schedule:
         - cron: "0 */12 * * *"
-
     workflow_dispatch:
 
 jobs:
@@ -14,16 +13,35 @@ jobs:
             contents: write
 
         steps:
-            - uses: actions/checkout@master
+            # Checkout репозитория (важно: указываем ref!)
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  ref: main
+
+            # Настройка git user (иначе commit не пройдёт)
+            - name: Setup git user
+              run: |
+                  git config user.name "github-actions"
+                  git config user.email "actions@github.local"
+
+            # Node
             - uses: actions/setup-node@v3
               with:
                   node-version: '18'
+
+            # Выполнение обновления
             - name: Update prices
               run: npm install && node index.js '${{ secrets.USERNAME }}' '${{ secrets.PASSWORD }}' '${{ secrets.SHARED_SECRET }}' '${{ secrets.PROXY_URL }}'
+
+            # Получение текущего времени
             - name: Get current date and time
               id: current_datetime
               run: echo "CURRENT_DATETIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+
+            # Коммит и пуш
             - name: Commit & push changes
               uses: stefanzweifel/git-auto-commit-action@v4
               with:
                   commit_message: "Updated CS Prices on ${{ env.CURRENT_DATETIME }}"
+                  branch: main

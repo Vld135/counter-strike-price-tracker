@@ -15,7 +15,7 @@ const STATE_FILE = "state.json";
 const proxy = process.argv[5];
 
 const START_TIME = Date.now();
-const MAX_DURATION = 3600 * 1000 * 1;
+const MAX_DURATION = 3600 * 1000 * 2;
 
 let errorFound = false;
 

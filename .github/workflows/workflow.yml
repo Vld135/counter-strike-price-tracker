@@ -16,7 +16,7 @@ jobs:
             # Checkout репозитория (важно: указываем ref!)
             - uses: actions/checkout@v4
               with:
-                  fetch-depth: 0
+                  fetch-depth: 1
                   ref: main
 
             # Настройка git user (иначе commit не пройдёт)

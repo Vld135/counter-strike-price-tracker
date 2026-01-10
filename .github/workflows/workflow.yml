@@ -46,6 +46,7 @@ jobs:
                   commit_message: "Updated CS Prices on ${{ env.CURRENT_DATETIME }}"
                   branch: main
                   file_pattern: |
+                      state.json
                       static/prices/latest.json
                       static/pricehistory/*.json
                   skip_dirty_check: true

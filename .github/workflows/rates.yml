@@ -22,7 +22,7 @@ jobs:
       - name: Fetch exchange rates
         run: node rates.js
         env:
-          EXCHANGE_API_KEY: ${{ vars.EXCHANGE_API_KEY }}
+          EXCHANGE_API_KEY: ${{ secrets.EXCHANGE_API_KEY }}
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4

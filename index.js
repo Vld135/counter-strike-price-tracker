@@ -4,6 +4,7 @@ const sha1 = require("js-sha1");
 const SteamTotp = require("steam-totp");
 const { EAuthTokenPlatformType, LoginSession } = require("steam-session");
 const { default: axios } = require("axios");
+const { getWeightedAveragePrice } = require("./pricing");
 
 const dir = `./static`;
 const dirPrices = `./static/prices`;
@@ -268,29 +269,3 @@ async function processItems(items, startIndex, batchSize = 1) {
   }
 }
 
-function getWeightedAveragePrice(data, lastEver) {
-  const now = Date.now();
-
-  const calculateWAP = (days) => {
-    const limit = now - days * 24 * 60 * 60 * 1000;
-    let totalVolume = 0;
-    let totalPriceVolumeProduct = 0;
-
-    data.forEach(({ time, value, volume }) => {
-      if (time >= limit) {
-        totalPriceVolumeProduct += value * volume;
-        totalVolume += volume;
-      }
-    });
-
-    return totalVolume > 0 ? totalPriceVolumeProduct / totalVolume : null;
-  };
-
-  return {
-    last_24h: calculateWAP(1),
-    last_7d: calculateWAP(7),
-    last_30d: calculateWAP(30),
-    last_90d: calculateWAP(90),
-    last_ever: lastEver,
-  };
-}

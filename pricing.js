@@ -61,7 +61,7 @@ function getWeightedAveragePrice(data, lastEver) {
     last_7d: calculateWAP(7),
     last_30d: calculateWAP(30),
     last_90d: calculateWAP(90),
-    last_ever: lastEver,
+    last_ever: calculateWAP(0.25),
   };
 }
 

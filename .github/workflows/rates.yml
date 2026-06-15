@@ -32,3 +32,4 @@ jobs:
         with:
           commit_message: 'Updated exchange rates'
           file_pattern: 'static/rates/*.json'
+          skip_dirty_check: true

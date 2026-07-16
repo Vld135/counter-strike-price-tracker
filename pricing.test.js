@@ -1,4 +1,8 @@
-const { filterOutliersByIQR, getWeightedAveragePrice } = require("./pricing");
+const {
+  filterOutliersByIQR,
+  getReferencePrice,
+  getWeightedAveragePrice,
+} = require("./pricing");
 
 describe("filterOutliersByIQR", () => {
   test("returns original when fewer than 4 data points", () => {
@@ -88,9 +92,15 @@ describe("getWeightedAveragePrice", () => {
     });
   });
 
-  test("passes last_ever through as-is", () => {
-    const result = getWeightedAveragePrice([], 42.5);
-    expect(result.last_ever).toBe(42.5);
+  test("last_ever is a spike-protected recent window, not a raw pass-through", () => {
+    const data = [];
+    for (let i = 1; i <= 30; i++) data.push({ time: days(i), value: 0.03, volume: 5 });
+    data.push({ time: hours(0.5), value: 11.955, volume: 1 });
+
+    const result = getWeightedAveragePrice(data);
+
+    expect(result.last_ever).not.toBe(11.955);
+    expect(result.last_ever).toBeNull();
   });
 
   test("returns median for 1-3 data points in window", () => {
@@ -171,5 +181,65 @@ describe("getWeightedAveragePrice", () => {
     const result = getWeightedAveragePrice(data, 100);
     expect(result.last_24h).toBe(100);
     expect(result.last_7d).not.toBe(result.last_30d);
+  });
+});
+
+describe("getReferencePrice", () => {
+  const now = Date.now();
+  const days = (d) => now - d * 24 * 60 * 60 * 1000;
+
+  test("returns a spike-resistant estimate, ignoring an outlier", () => {
+    const data = [];
+    for (let i = 1; i <= 10; i++) data.push({ time: days(i), value: 0.03, volume: 1 });
+    data.push({ time: days(0.1), value: 11.955, volume: 1 });
+
+    expect(getReferencePrice(data)).toBeCloseTo(0.03, 5);
+  });
+
+  test("returns null when there are fewer than 4 points ever", () => {
+    const data = [
+      { time: days(1), value: 0.03, volume: 1 },
+      { time: days(2), value: 0.04, volume: 1 },
+      { time: days(3), value: 0.05, volume: 1 },
+    ];
+
+    expect(getReferencePrice(data)).toBeNull();
+  });
+});
+
+describe("low-liquidity spike protection (UMP-45 | Green Swirl regression)", () => {
+  const now = Date.now();
+  const hours = (h) => now - h * 60 * 60 * 1000;
+  const days = (d) => now - d * 24 * 60 * 60 * 1000;
+
+  const baseline = () => {
+    const pts = [];
+    for (let i = 1; i <= 30; i++) pts.push({ time: days(i), value: 0.03, volume: 5 });
+    return pts;
+  };
+
+  test("a single spike in a sub-4-point window does not become the price", () => {
+    const data = [
+      ...baseline(),
+      { time: hours(3), value: 0.03, volume: 5 },
+      { time: hours(0.5), value: 11.955, volume: 1 },
+    ];
+
+    const result = getWeightedAveragePrice(data);
+
+    expect(result.last_24h).not.toBe(11.955);
+    expect(result.last_ever).not.toBe(11.955);
+    expect(result.last_24h).toBeCloseTo(0.03, 5);
+    expect(result.last_ever).toBeCloseTo(0.03, 5);
+    expect(result.last_30d).toBeCloseTo(0.03, 5);
+    expect(result.last_90d).toBeCloseTo(0.03, 5);
+  });
+
+  test("a legitimate sale below the spike cap is kept", () => {
+    const data = [...baseline(), { time: hours(1), value: 0.07, volume: 1 }];
+
+    const result = getWeightedAveragePrice(data);
+
+    expect(result.last_24h).toBeGreaterThan(0.03);
   });
 });

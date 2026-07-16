@@ -4,7 +4,21 @@ const sha1 = require("js-sha1");
 const SteamTotp = require("steam-totp");
 const { EAuthTokenPlatformType, LoginSession } = require("steam-session");
 const { default: axios } = require("axios");
+const Request = require("request");
 const { getWeightedAveragePrice } = require("./pricing");
+
+
+const STEAM_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
+
+const STEAM_WEB_HEADERS = {
+  "User-Agent": STEAM_USER_AGENT,
+  "Accept-Language": "en-US,en;q=0.9",
+  "Accept-Encoding": "gzip, deflate, br, zstd",
+  "sec-ch-ua": '"Google Chrome";v="146", "Chromium";v="146", "Not?A_Brand";v="24"',
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": '"Windows"',
+};
 
 const dir = `./static`;
 const dirPrices = `./static/prices`;
@@ -50,7 +64,10 @@ session.startWithCredentials({
   password: process.argv[3],
   steamGuardCode: SteamTotp.generateAuthCode(process.argv[4]),
 });
-let community = new SteamCommunity();
+let community = new SteamCommunity({
+  request: Request.defaults({ headers: { ...STEAM_WEB_HEADERS }, forever: true }),
+  userAgent: STEAM_USER_AGENT,
+});
 
 
 session.on("authenticated", async () => {
@@ -182,6 +199,7 @@ async function fetchPrice(name) {
             console.log("IP refreshed:", resp.data);
 
             resolve({ prices: [], lastEver: null });
+            return;
           }
 
           const prices = (JSON.parse(res.body).prices || []).map(

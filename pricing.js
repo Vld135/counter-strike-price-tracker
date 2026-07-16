@@ -1,3 +1,13 @@
+const SPIKE_MULTIPLIER = 3;
+
+function median(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
 function filterOutliersByIQR(dataPoints) {
   if (dataPoints.length < 4) return dataPoints;
 
@@ -27,21 +37,33 @@ function filterOutliersByIQR(dataPoints) {
   return filtered.length > 0 ? filtered : dataPoints;
 }
 
+function getReferencePrice(data) {
+  const now = Date.now();
+  for (const days of [30, 90, Infinity]) {
+    const limit = days === Infinity ? -Infinity : now - days * 24 * 60 * 60 * 1000;
+    const windowData = data.filter(({ time }) => time >= limit);
+    if (windowData.length >= 4) {
+      return median(filterOutliersByIQR(windowData).map((d) => d.value));
+    }
+  }
+  return null;
+}
+
 function getWeightedAveragePrice(data, lastEver) {
   const now = Date.now();
+  const reference = getReferencePrice(data);
+  const spikeCap = reference == null ? Infinity : reference * SPIKE_MULTIPLIER;
 
   const calculateWAP = (days) => {
     const limit = now - days * 24 * 60 * 60 * 1000;
-    const windowData = data.filter(({ time }) => time >= limit);
+    const windowData = data.filter(
+      ({ time, value }) => time >= limit && value <= spikeCap
+    );
 
     if (windowData.length === 0) return null;
 
     if (windowData.length < 4) {
-      const sorted = windowData.map((d) => d.value).sort((a, b) => a - b);
-      const mid = Math.floor(sorted.length / 2);
-      return sorted.length % 2 !== 0
-        ? sorted[mid]
-        : (sorted[mid - 1] + sorted[mid]) / 2;
+      return median(windowData.map((d) => d.value));
     }
 
     const filtered = filterOutliersByIQR(windowData);
@@ -65,4 +87,9 @@ function getWeightedAveragePrice(data, lastEver) {
   };
 }
 
-module.exports = { filterOutliersByIQR, getWeightedAveragePrice };
+module.exports = {
+  filterOutliersByIQR,
+  getReferencePrice,
+  getWeightedAveragePrice,
+  SPIKE_MULTIPLIER,
+};
